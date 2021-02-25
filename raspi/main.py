@@ -1,8 +1,14 @@
+import RPi.GPIO as GPIO
+from time import sleep
 import cv2
 import csv
 import boto3
 import json
 import time
+
+GPIO.setmode(GPIO.BOARD)
+GPIO.setup(5, GPIO.OUT, initial=GPIO.LOW)
+GPIO.setup(3, GPIO.OUT, initial=GPIO.LOW)
 
 with open('cred.csv', 'r') as input:
     next(input)
@@ -18,6 +24,7 @@ print(token)
 
 count = 0
 timesleep = 5
+label_truck = 0
 vidcap = cv2.VideoCapture('stream.mp4')
 
 fps = int(vidcap.get(cv2.CAP_PROP_FPS))
@@ -52,7 +59,7 @@ while (True):
         region_name='us-east-1'
     )
     with open(photo, 'rb') as source_image:
-        source_byte = source_image.read()
+        source_byte = source_ima    ge.read()
 
     response = client.detect_labels(
         Image={'Bytes': source_byte}, MaxLabels=10, MinConfidence=80)
@@ -65,9 +72,20 @@ while (True):
                 if(entry["Confidence"] >= 90):
                     print("Truck Confidence Over " +
                           str(entry["Confidence"]) + "% !")
+                    label_truck = 1
                 break
             else:
                 print("No truck labels")
+                label_truck = 0
         else:
             break
+
+    if(label_truck == 1):
+        GPIO.output(5, GPIO.HIGH)
+        GPIO.output(3, GPIO.LOW)
+    else:
+        GPIO.output(3, GPIO.HIGH)
+        GPIO.output(5, GPIO.LOW)
+
     count = count+1
+    print("Label Truck :" + str(label_truck))

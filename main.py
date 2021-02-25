@@ -57,6 +57,9 @@ while (True):
     response = client.detect_labels(
         Image={'Bytes': source_byte}, MaxLabels=10, MinConfidence=80)
 
+    print("")
+    print(response)
+    print("")
     for entry in response["Labels"]:
 
         if(entry["Name"]):
